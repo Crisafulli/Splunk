@@ -1,0 +1,210 @@
+<form>
+  <label>Low Latency Commercial Break &amp; Tech Difficulty Slate Ratio FS1</label>
+  <description>This dashboard accounts for total commercial break slate served, total ad duration and total technical difficulty served. 
+You need to find the assetID for the testing period and add it to the drop down to properly calculate the ratio. This is visible in VDMS CMS.</description>
+  <search id="base_search">
+    <query>index=[index] slice_played  externalUserID="*joza*" | dedup assetID,externalUserID </query>
+    <earliest>$time.earliest$</earliest>
+    <latest>$time.latest$</latest>
+  </search>
+  <fieldset submitButton="false" autoRun="false">
+    <input type="time" token="time" searchWhenChanged="true">
+      <label>Select time range</label>
+      <default>
+        <earliest></earliest>
+        <latest></latest>
+      </default>
+    </input>
+    <input type="dropdown" token="ext" searchWhenChanged="true">
+      <label>External User ID</label>
+      <fieldForLabel>externalUserID</fieldForLabel>
+      <fieldForValue>externalUserID</fieldForValue>
+      <search base="base_search">
+        <query/>
+      </search>
+      <choice value="*joza*">All</choice>
+    </input>
+    <input type="multiselect" token="ass" searchWhenChanged="true">
+      <label>Asset IDs For Exception (IF there was more than one program during time frame)</label>
+      <fieldForLabel>assetID</fieldForLabel>
+      <fieldForValue>assetID</fieldForValue>
+      <search base="base_search">
+        <query/>
+      </search>
+      <choice value="*">All</choice>
+      <delimiter> </delimiter>
+      <valuePrefix>assetID!="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Total Duration of Commercial Break Slate</title>
+      <single>
+        <search>
+          <query>index=[index] slice_played  externalUserID="$ext$" assetID="a8cb10a45a204f2eb58b40bd09764cbf"
+| stats sum(duration) as "Duration_in_seconds"
+| append 
+     [| makeresults 
+     | stats count(foo) AS count 
+     | eval duration=if(isnull(duration),"0",duration)] 
+ | streamstats count AS line_num 
+ | eval head_num=if((line_num &gt; 1),(line_num - 1),1) 
+ | where (true() XOR ((count == 0) AND (head_num &lt; line_num))) 
+ | fields - column, count, head_num, line_num 
+ | sort -_time</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">s</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Total Ad Duration</title>
+      <single>
+        <search>
+          <query>index=[index] slice_played  externalUserID="$ext$"  assetID!="a8cb10a45a204f2eb58b40bd09764cbf" assetID!="e87453b9ecca4b37b771b0728b573108" $ass$
+| stats sum(duration) as "Duration in seconds"
+ | append 
+     [| makeresults 
+     | stats count(foo) AS count 
+     | eval duration=if(isnull(duration),"0",duration)] 
+ | streamstats count AS line_num 
+ | eval head_num=if((line_num &gt; 1),(line_num - 1),1) 
+ | where (true() XOR ((count == 0) AND (head_num &lt; line_num))) 
+ | fields - column, count, head_num, line_num 
+ | sort -_time</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">s</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Total Duration of Technical Diff Slate</title>
+      <single>
+        <search>
+          <query>index=[index] slice_played  externalUserID="$ext$" assetID="e87453b9ecca4b37b771b0728b573108"
+| stats sum(duration) as "Duration_in_seconds"
+ | append 
+     [| makeresults 
+     | stats count(foo) AS count 
+     | eval duration=if(isnull(duration),"0",duration)] 
+ | streamstats count AS line_num 
+ | eval head_num=if((line_num &gt; 1),(line_num - 1),1) 
+ | where (true() XOR ((count == 0) AND (head_num &lt; line_num))) 
+ | fields - column, count, head_num, line_num 
+ | sort -_time</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">s</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Commercial Break Slate to Ads Percentage</title>
+      <single>
+        <search>
+          <query>index=[index] slice_played  externalUserID="$ext$" assetID="a8cb10a45a204f2eb58b40bd09764cbf" 
+ | stats sum(duration) as "x_seconds" 
+ | appendcols 
+     [ search index=[index] slice_played externalUserID="$ext$" assetID!="a8cb10a45a204f2eb58b40bd09764cbf" assetID!="e87453b9ecca4b37b771b0728b573108" $ass$
+     | stats sum(duration) as "y_seconds"
+      | append 
+     [| makeresults 
+     | stats count(foo) AS count 
+     | eval y_seconds=if(isnull(duration),"0",duration)] 
+ | streamstats count AS line_num 
+ | eval head_num=if((line_num &gt; 1),(line_num - 1),1) 
+ | where (true() XOR ((count == 0) AND (head_num &lt; line_num))) 
+ | fields - column, count, head_num, line_num 
+ | sort -_time] 
+ | eval Result=('x_seconds') / ('x_seconds' + 'y_seconds')*100
+ | fields Result</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Technical Difficulty Slate to Ads Percentage</title>
+      <single>
+        <search>
+          <query>index=[index] slice_played  externalUserID="$ext$" assetID="e87453b9ecca4b37b771b0728b573108"
+| stats sum(duration) as "x_seconds"
+
+ | appendcols 
+     [ search index=[index] slice_played   externalUserID="$ext$" assetID="*"
+     | stats sum(duration) as "y_seconds"
+      | append 
+     [| makeresults 
+     | stats count(foo) AS count 
+     | eval y_seconds=if(isnull(duration),"0",duration)] 
+ | streamstats count AS line_num 
+ | eval head_num=if((line_num &gt; 1),(line_num - 1),1) 
+ | where (true() XOR ((count == 0) AND (head_num &lt; line_num))) 
+ | fields - column, count, head_num, line_num 
+ | sort -_time] 
+ | eval Result=('x_seconds') / ('y_seconds')*100
+ | fields Result</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Expected Total Seconds Delivered(In Seconds)</title>
+        <search>
+          <query>index=[index] slice_played   externalUserID="$ext$" assetID="*"  | addinfo 
+| convert timeformat="%H:%M:%S" ctime(info_max_time) AS time1
+| convert timeformat="%H:%M:%S" ctime(info_min_time) AS time2 
+| convert dur2sec(time1) dur2sec(time2) 
+| eval dur= 'time1' - 'time2'
+| stats values(dur)</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">s</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Actual Total Seconds Delivered(In Seconds)</title>
+        <search>
+          <query>index=[index] slice_played   externalUserID="$ext$" assetID="*"| stats sum(duration)</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0.000</option>
+        <option name="unit">s</option>
+      </single>
+    </panel>
+  </row>
+</form>
