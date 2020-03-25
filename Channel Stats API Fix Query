@@ -1,4 +1,5 @@
-index="index" sourcetype="sourcetype" | rename message.account as Account message.timestamp as timestamp 
+index="index" sourcetype="sourcetype" 
+| rename message.account as Account message.timestamp as timestamp 
 | eval new_time=strftime(timestamp/1000, " %m-%d-%Y %H:%M:%S") 
 | search Account=account  "message.title"="title" 
 | bin span=1m timestamp 
