@@ -1,7 +1,6 @@
-index="index" sourcetype="sourcetype" 
+index="index" sourcetype="enter source" message.account="account"
 | rename message.account as Account message.timestamp as timestamp 
-| eval new_time=strftime(timestamp/1000, " %m-%d-%Y %H:%M:%S") 
-| search Account=account  "message.title"="title" 
-| bin span=1m timestamp 
-| dedup timestamp, message.title
-| chart  sum(message.concurrent_sessions_minus_new60s) as "Concurrent sessions" by new_time, "message.title"
+| eval responseTime=strftime(timestamp/1000, " %m-%d-%Y %H:%M")
+| bin span=1m responseTime
+| dedup responseTime, message.title 
+| chart sum(message.concurrent_sessions_minus_new60s) as "Concurrent sessions" over responseTime by Account | addtotals
