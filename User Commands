@@ -1,0 +1,17 @@
+index="something_here" 
+source="source" 
+
+"line.event.message.req.url"!="/health-check"
+| eval FormattedTime = strftime(_time, "%m/%d %A %H:%M:%S")
+| sort -_time
+| table
+  line.event.message.extraLogInfo{}.User
+  line.event.message.req.method
+  line.event.message.res.statusCode
+  line.event.message.req.url
+  FormattedTime
+| rename
+  line.event.message.extraLogInfo{}.User AS "User"
+  line.event.message.res.statusCode AS "Status Code"
+  line.event.message.req.url AS "Sent Command"
+  FormattedTime AS "Time"
