@@ -1,0 +1,11 @@
+{"example": {
+    "name": "Justin",
+    "reason": "testing",
+    "splunk": {
+      "dashboards": [
+        {"db1": "foo"},
+        {"db2": "bar"},
+        {"db3": "something"}
+      ]
+    }
+  }}
