@@ -1,0 +1,6 @@
+index="index_here" AND slicer_id="value_here" OR slicer_id="value_here" AND ("Segmentation type ID: " OR "upid:") 
+| eval segTypeId=case(_raw LIKE "%type ID: 20%", "Program Resumption (20)") 
+| eval responseTime=strftime(_time, " %m-%d-%Y %H:%M:%S")   
+| transaction startswith="upid:" endswith="Segmentation type" maxevents=2 
+| search segTypeId=Program*  segTypeId="Program Resumption (20)" 
+| dedup responseTime, slicer_id| fields responseTime, slicer_id, segTypeId, upid
