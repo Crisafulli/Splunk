@@ -1,0 +1,428 @@
+<form stylesheet="dark.css" theme="light">
+  <label>SCTE-104 to SCTE-35 Comparison (Pico vs Tempe)</label>
+  <fieldset submitButton="false" autoRun="false">
+    <input type="time" token="date_time" searchWhenChanged="true">
+      <label>Date Time</label>
+      <default>
+        <earliest>-24h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <html>
+      <dl>
+        <p>
+          <strong>PICO Paths:</strong>
+        </p>
+        <dt>1) NET103C routed to TX733 and TX709</dt>
+        <dd>- fbceastnationalpico_p and tx709rbo_fxa_p</dd>
+        <dt>2) NET104C routed to TX734 and TX710</dt>
+        <dd>- fbcmountainnationalpico_p to tx710rbo_fxa_p</dd>
+        <dt>3) NET103C routed to TX 735 and TX711</dt>
+        <dd>- fbcwestnationalpico_p and tx711rbo_fxa_p</dd>
+        <br>
+          
+        </br>
+        <p>
+          <strong>TEMPE Paths:</strong>
+        </p>
+        <dt>4) Tempe East FD 724 routed to AUX996 and TX705</dt>
+        <dd>aux996_pico_p and tx705rbo_fxa_p</dd>
+        <dt>5) Tempe Mountain FD710 routed to AUX997 and TX706</dt>
+        <dd>aux997_pico_p and tx706rbo_fxa_p</dd>
+        <dt>6) Tempe West FD724 routed to AUX998 and TX707</dt>
+        <dd>aux998_pico_p and tx707rbo_fxa_p</dd>
+    </dl>
+    </html>
+    <input type="text" token="slicer_id_1" searchWhenChanged="true">
+      <label>FBC EAST</label>
+      <default>fbceastnational_pico_p</default>
+      <initialValue>fbceastnational_pico_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_2" searchWhenChanged="true">
+      <label>TX709</label>
+      <default>tx709rbo_fxa_p</default>
+      <initialValue>tx709rbo_fxa_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_3" searchWhenChanged="true">
+      <label>FBC MOUNTAIN</label>
+      <default>fbcmountainnational_pico_p</default>
+      <initialValue>fbcmountainnational_pico_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_4" searchWhenChanged="true">
+      <label>TX710</label>
+      <default>tx710rbo_fxa_p</default>
+      <initialValue>tx710rbo_fxa_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_5" searchWhenChanged="true">
+      <label>FBC WEST</label>
+      <default>fbcwestnational_pico_p</default>
+      <initialValue>fbcwestnational_pico_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_6" searchWhenChanged="true">
+      <label>TX711</label>
+      <default>tx711rbo_fxa_p</default>
+      <initialValue>tx711rbo_fxa_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_7" searchWhenChanged="true">
+      <label>AUX996</label>
+      <default>aux996_pico</default>
+      <initialValue>aux996_pico</initialValue>
+    </input>
+    <input type="text" token="slicer_id_8" searchWhenChanged="true">
+      <label>TX705</label>
+      <default>tx705rbo_fxa_p</default>
+      <initialValue>tx705rbo_fxa_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_9" searchWhenChanged="true">
+      <label>AUX997</label>
+      <default>aux997_pico</default>
+      <initialValue>aux997_pico</initialValue>
+    </input>
+    <input type="text" token="slicer_id_10" searchWhenChanged="true">
+      <label>TX706</label>
+      <default>tx706rbo_fxa_p</default>
+      <initialValue>tx706rbo_fxa_p</initialValue>
+    </input>
+    <input type="text" token="slicer_id_11" searchWhenChanged="true">
+      <label>AUX998</label>
+      <default>aux998_pico</default>
+      <initialValue>aux998_pico</initialValue>
+    </input>
+    <input type="text" token="slicer_id_12" searchWhenChanged="true">
+      <label>TX707</label>
+      <default>tx707rbo_fxa_p</default>
+      <initialValue>tx707rbo_fxa_p</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>TX733 (Pico East NET103C routed to TX733)</title>
+      <chart>
+        <title>$slicer_id_1$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_1$ "[Py][upl-py] SCTE Message:" 
+| eval segmentation_type_id=case( 
+_raw LIKE "%'segmentation_type_id': 1L%", "Heartbeat (1)",
+_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)",
+_raw LIKE "%'segmentation_type_id': 33%", "Chapter End (33)",
+_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)",
+_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)",
+_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)") 
+| transaction segmentation_type_id segmentation_upid startswith=segmentation_type_id 
+| eval segmentation_type_id=if(match(segmentation_type_id, "^\s+$"), null(),'segmentation_type_id') 
+| append
+	[search index="dcg_vdms" $slicer_id_1$ "[Py][upl-py] SCTE Message:"
+	| eval segmentation_type_id=case(
+	_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)",
+	_raw LIKE "%'segmentation_type_id': 32%", "Chapter Start (32)",
+	_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)",
+	_raw LIKE "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)",
+	_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)")
+	| transaction segmentation_type_id segmentation_upid startswith=segmentation_type_id 
+	| eval segmentation_type_id=if(match(segmentation_type_id, "^\s+$"), null(),'segmentation_type_id') ]
+|  timechart span=1m count by segmentation_type_id limit=0 fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisLabelsY.majorUnit">1</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisY.maximumNumber">5</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.size">small</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX709 (Pico East NET103C routed to TX709)</title>
+      <chart>
+        <title>$slicer_id_2$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_2$ "[Py][upl-py] SCTE Message:" 
+| eval segmentation_type_id=case( 
+_raw LIKE "%'segmentation_type_id': 1%", "Heartbeat (1)",
+_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)",
+_raw LIKE "%'segmentation_type_id': 33%", "Chapter End (33)",
+_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)",
+_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)",
+_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)") 
+| transaction segmentation_type_id segmentation_upid startswith=segmentation_type_id 
+| eval segmentation_type_id=if(match(segmentation_type_id, "^\s+$"), null(),'segmentation_type_id') 
+| append
+	[search index="dcg_vdms" $slicer_id_2$ "[Py][upl-py] SCTE Message:"
+	| eval segmentation_type_id=case(
+	_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)",
+	_raw LIKE "%'segmentation_type_id': 32%", "Chapter Start (32)",
+	_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)",
+	_raw LIKE "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)",
+	_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)")
+	| transaction segmentation_type_id segmentation_upid startswith=segmentation_type_id 
+	| eval segmentation_type_id=if(match(segmentation_type_id, "^\s+$"), null(),'segmentation_type_id') ]
+|  timechart span=1m count by segmentation_type_id limit=0 fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisLabelsY.majorUnit">1</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisY.maximumNumber">5</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX734 (Pico Mountain NET104C routed to TX734)</title>
+      <chart>
+        <title>$slicer_id_3$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_3$ "'segmentation_type_id': ***" AND "'segmentation_upid': '**'" 
+| eval segmentation_type_id=case(
+_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)"
+,_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)"
+,_raw LIKE  "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)"
+,_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)"
+,_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)"
+,_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)"
+,_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)"
+,_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)") 
+
+| transaction  segmentation_type_id segmentation_upid startswith=segmentation_type_id | eval
+    segmentation_type_id=if(
+        match(segmentation_type_id, "^\s+$"),
+            null(),
+            'segmentation_type_id'
+        )| timechart count by segmentation_type_id fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked100</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX710 (Pico Mountain NET104C routed to TX710)</title>
+      <chart>
+        <title>$slicer_id_4$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_4$ AND ("Segmentation type ID: " OR "upid:") | eval segTypeId=case(_raw LIKE "%type ID: 16%", "Program Start (16)",_raw LIKE "%type ID: 17%", "Program End (17)",_raw LIKE "%type ID: 32%", "Chapter Start (32)",_raw LIKE "%type ID: 33%", "Chapter End (33)",_raw LIKE "%type ID: 52%", "Provider Placement Opp Start (52)",_raw LIKE "%type ID: 53%", "Provider Placement Opp End (53)",_raw LIKE "%type ID: 48%", "Provider Ad Start (48)",_raw LIKE "%type ID: 49%", "Provider Ad End (49)",_raw LIKE "%type ID: 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%type ID: 55%", "Distributor Placement Opp End (55)",_raw LIKE "%type ID: 1", "Content Identifier (1)")
+| transaction startswith="upid:" endswith="Segmentation type" maxevents=2 | search segTypeId="***" | timechart count by segTypeId limit=0 fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked100</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX735 (Pico West NET103C routed to TX 735)</title>
+      <chart>
+        <title>$slicer_id_5$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_5$ "'segmentation_type_id': ***" AND "'segmentation_upid': '**'" | eval segmentation_type_id=case(_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)",_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)",_raw LIKE "%'segmentation_type_id': 32%", "Chapter Start (32)",_raw LIKE "%'segmentation_type_id': 33%", "Chapter End (33)",_raw LIKE "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)",_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)",_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)",_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)",_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)",_raw LIKE "%'segmentation_type_id': 1%","Content Identifier (1)") | transaction host segmentation_type_id segmentation_upid startswith=segmentation_type_id | timechart count by segmentation_type_id fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX711 (Pico West NET103C routed to TX 711)</title>
+      <chart>
+        <title>$slicer_id_6$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_6$ AND ("Segmentation type ID: " OR "upid:") | eval segTypeId=case(_raw LIKE "%type ID: 16%", "Program Start (16)",_raw LIKE "%type ID: 17%", "Program End (17)",_raw LIKE "%type ID: 32%", "Chapter Start (32)",_raw LIKE "%type ID: 33%", "Chapter End (33)",_raw LIKE "%type ID: 52%", "Provider Placement Opp Start (52)",_raw LIKE "%type ID: 53%", "Provider Placement Opp End (53)",_raw LIKE "%type ID: 48%", "Provider Ad Start (48)",_raw LIKE "%type ID: 49%", "Provider Ad End (49)",_raw LIKE "%type ID: 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%type ID: 55%", "Distributor Placement Opp End (55)",_raw LIKE "%type ID: 1", "Content Identifier (1)")
+| transaction startswith="upid:" endswith="Segmentation type" maxevents=2 | search segTypeId="***" | timechart count by segTypeId limit=0 fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>AUX996 (Tempe East FD 724)</title>
+      <chart>
+        <title>$slicer_id_7$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_7$ "'segmentation_type_id': ***" AND "'segmentation_upid': '**'" | eval segmentation_type_id=case(_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)",_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)",_raw LIKE "%'segmentation_type_id': 32%", "Chapter Start (32)",_raw LIKE "%'segmentation_type_id': 33%", "Chapter End (33)",_raw LIKE "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)",_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)",_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)",_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)",_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)",_raw LIKE "%'segmentation_type_id': 1%","Content Identifier (1)") | transaction  segmentation_type_id segmentation_upid startswith=segmentation_type_id | eval
+    segmentation_type_id=if(
+        match(segmentation_type_id, "^\s+$"),
+            null(),
+            'segmentation_type_id'
+        )| timechart count by segmentation_type_id fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX705 (Tempe East FD 724)</title>
+      <chart>
+        <title>$slicer_id_8$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_8$  AND ("Segmentation type ID: " OR "upid:") | eval segTypeId=case(_raw LIKE "%type ID: 16%", "Program Start (16)",_raw LIKE "%type ID: 17%", "Program End (17)",_raw LIKE "%type ID: 32%", "Chapter Start (32)",_raw LIKE "%type ID: 33%", "Chapter End (33)",_raw LIKE "%type ID: 52%", "Provider Placement Opp Start (52)",_raw LIKE "%type ID: 53%", "Provider Placement Opp End (53)",_raw LIKE "%type ID: 48%", "Provider Ad Start (48)",_raw LIKE "%type ID: 49%", "Provider Ad End (49)",_raw LIKE "%type ID: 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%type ID: 55%", "Distributor Placement Opp End (55)",_raw LIKE "%type ID: 1", "Content Identifier (1)")
+| transaction startswith="upid:" endswith="Segmentation type" maxevents=2 | search segTypeId="***" | timechart count by segTypeId fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>AUX997 (Tempe Mountain FD710)</title>
+      <chart>
+        <title>$slicer_id_9$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_9$ "'segmentation_type_id': ***" AND "'segmentation_upid': '**'" | eval segmentation_type_id=case(_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)",_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)",_raw LIKE "%'segmentation_type_id': 32%", "Chapter Start (32)",_raw LIKE "%'segmentation_type_id': 33%", "Chapter End (33)",_raw LIKE "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)",_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)",_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)",_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)",_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)",_raw LIKE "%'segmentation_type_id': 1%","Content Identifier (1)") | transaction host segmentation_type_id segmentation_upid startswith=segmentation_type_id | timechart count by segmentation_type_id fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX706 (Tempe Mountain FD710)</title>
+      <chart>
+        <title>$slicer_id_10$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_10$ AND ("Segmentation type ID: " OR "upid:") | eval segTypeId=case(_raw LIKE "%type ID: 16%", "Program Start (16)",_raw LIKE "%type ID: 17%", "Program End (17)",_raw LIKE "%type ID: 32%", "Chapter Start (32)",_raw LIKE "%type ID: 33%", "Chapter End (33)",_raw LIKE "%type ID: 52%", "Provider Placement Opp Start (52)",_raw LIKE "%type ID: 53%", "Provider Placement Opp End (53)",_raw LIKE "%type ID: 48%", "Provider Ad Start (48)",_raw LIKE "%type ID: 49%", "Provider Ad End (49)",_raw LIKE "%type ID: 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%type ID: 55%", "Distributor Placement Opp End (55)",_raw LIKE "%type ID: 1", "Content Identifier (1)")
+| transaction startswith="upid:" endswith="Segmentation type" maxevents=2 | search segTypeId="***" | timechart count by segTypeId fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+          <refresh>$refresh_time$</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>AUX998 (Tempe West FD724)</title>
+      <chart>
+        <title>$slicer_id_11$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_11$ "'segmentation_type_id': ***" AND "'segmentation_upid': '**'" | eval segmentation_type_id=case(_raw LIKE "%'segmentation_type_id': 16%", "Program Start (16)",_raw LIKE "%'segmentation_type_id': 17%", "Program End (17)",_raw LIKE "%'segmentation_type_id': 32%", "Chapter Start (32)",_raw LIKE "%'segmentation_type_id': 33%", "Chapter End (33)",_raw LIKE "%'segmentation_type_id': 52%", "Provider Placement Opp Start (52)",_raw LIKE "%'segmentation_type_id': 53%", "Provider Placement Opp End (53)",_raw LIKE "%'segmentation_type_id': 48%", "Provider Ad Start (48)",_raw LIKE "%'segmentation_type_id': 49%", "Provider Ad End (49)",_raw LIKE "%'segmentation_type_id': 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%'segmentation_type_id': 55%", "Distributor Placement Opp End (55)",_raw LIKE "%'segmentation_type_id': 1%","Content Identifier (1)") | transaction host segmentation_type_id segmentation_upid startswith=segmentation_type_id | timechart count by segmentation_type_id fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TX707 (Tempe West FD724)</title>
+      <chart>
+        <title>$slicer_id_12$</title>
+        <search>
+          <query>index="dcg_vdms" $slicer_id_12$ AND ("Segmentation type ID: " OR "upid:") | eval segTypeId=case(_raw LIKE "%type ID: 16%", "Program Start (16)",_raw LIKE "%type ID: 17%", "Program End (17)",_raw LIKE "%type ID: 32%", "Chapter Start (32)",_raw LIKE "%type ID: 33%", "Chapter End (33)",_raw LIKE "%type ID: 52%", "Provider Placement Opp Start (52)",_raw LIKE "%type ID: 53%", "Provider Placement Opp End (53)",_raw LIKE "%type ID: 48%", "Provider Ad Start (48)",_raw LIKE "%type ID: 49%", "Provider Ad End (49)",_raw LIKE "%type ID: 54%", "Distributor Placement Opp Start (54)",_raw LIKE "%type ID: 55%", "Distributor Placement Opp End (55)",_raw LIKE "%type ID: 1", "Content Identifier (1)")
+| transaction startswith="upid:" endswith="Segmentation type" maxevents=2 | search segTypeId="***" | timechart count by segTypeId fixedrange=false</query>
+          <earliest>$date_time.earliest$</earliest>
+          <latest>$date_time.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+</form>
